@@ -1,13 +1,14 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import type { Project, ProjectInsert, ProjectUpdate } from "@/types";
 
 export function useProjects(clientIdFilter?: string | null) {
   return useQuery<Project[]>({
     queryKey: ["projects", clientIdFilter],
+    enabled: isSupabaseConfigured(),
     queryFn: async () => {
       const supabase = createClient();
       let q = supabase
@@ -29,7 +30,7 @@ export function useProjects(clientIdFilter?: string | null) {
 export function useProject(id: string | undefined) {
   return useQuery<Project>({
     queryKey: ["project", id],
-    enabled: !!id,
+    enabled: !!id && isSupabaseConfigured(),
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase

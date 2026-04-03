@@ -1,13 +1,14 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import type { Client, ClientInsert, ClientUpdate } from "@/types";
 
 export function useClients(clientIdFilter?: string | null) {
   return useQuery<Client[]>({
     queryKey: ["clients", clientIdFilter],
+    enabled: isSupabaseConfigured(),
     queryFn: async () => {
       const supabase = createClient();
       let q = supabase.from("clients").select("*").order("organisation_name");
@@ -22,7 +23,7 @@ export function useClients(clientIdFilter?: string | null) {
 export function useClient(id: string | undefined) {
   return useQuery<Client>({
     queryKey: ["client", id],
-    enabled: !!id,
+    enabled: !!id && isSupabaseConfigured(),
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase

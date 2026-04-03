@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import type { Task, TaskInsert, TaskUpdate } from "@/types";
 
@@ -13,6 +13,7 @@ interface TaskFilters {
 export function useTasks(filters: TaskFilters = {}) {
   return useQuery<Task[]>({
     queryKey: ["tasks", filters],
+    enabled: isSupabaseConfigured(),
     queryFn: async () => {
       const supabase = createClient();
       let q = supabase
@@ -40,7 +41,7 @@ export function useTasks(filters: TaskFilters = {}) {
 export function useTask(id: string | undefined) {
   return useQuery<Task>({
     queryKey: ["task", id],
-    enabled: !!id,
+    enabled: !!id && isSupabaseConfigured(),
     queryFn: async () => {
       const supabase = createClient();
       const [taskRes, subtasksRes, commentsRes, attachmentsRes] =

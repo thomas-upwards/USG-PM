@@ -23,7 +23,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
 import { useClientContext } from "@/contexts/client-context";
 import { StatusBadge, PriorityBadge } from "@/components/ui/status-badge";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   isToday,
   isPast,
@@ -41,6 +41,7 @@ export default function DashboardPage() {
   });
   const [userEmail, setUserEmail] = useState<string | null>(null);
   useEffect(() => {
+    if (!isSupabaseConfigured()) return;
     createClient()
       .auth.getUser()
       .then(({ data }) => setUserEmail(data.user?.email ?? null));

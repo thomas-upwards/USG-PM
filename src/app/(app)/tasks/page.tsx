@@ -23,7 +23,7 @@ import { useClientContext } from "@/contexts/client-context";
 import { TaskRow } from "@/components/tasks/task-row";
 import { TaskDrawer } from "@/components/tasks/task-drawer";
 import { TaskForm, type TaskFormValues } from "@/components/tasks/task-form";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { TaskStatus, Priority } from "@/types";
 type FilterStatus = TaskStatus | "all";
 type FilterPriority = Priority | "all";
@@ -38,6 +38,7 @@ export default function TasksPage() {
   const [creating, setCreating] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   useEffect(() => {
+    if (!isSupabaseConfigured()) return;
     createClient()
       .auth.getUser()
       .then(({ data }) => setUserEmail(data.user?.email ?? null));

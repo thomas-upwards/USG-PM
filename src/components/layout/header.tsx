@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, ChevronDown, LogOut, Check } from "lucide-react";
 import { useClientContext } from "@/contexts/client-context";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import {
   DropdownMenu,
@@ -17,10 +17,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import type { Client } from "@/types";
 
 function useClientList() {
-  const supabase = createClient();
   return useQuery<Client[]>({
     queryKey: ["clients-list"],
+    enabled: isSupabaseConfigured(),
     queryFn: async () => {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("clients")
         .select(
@@ -39,16 +40,20 @@ export function Header() {
     useClientContext();
   const { data: clients = [] } = useClientList();
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const supabase = createClient();
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       setUserEmail(data.user?.email ?? null);
     });
   }, []);
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    }
     router.push("/login");
     router.refresh();
   }
