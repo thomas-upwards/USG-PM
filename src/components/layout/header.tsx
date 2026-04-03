@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Building2, ChevronDown, LogOut, Check } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Building2, ChevronDown, LogOut, Check, Menu, LayoutDashboard, FolderKanban, CheckSquare } from "lucide-react";
+import Link from "next/link";
 import { useClientContext } from "@/contexts/client-context";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -13,8 +14,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import type { Client } from "@/types";
+
+const NAV_ITEMS = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/clients", label: "Clients", icon: Building2 },
+  { href: "/projects", label: "Projects", icon: FolderKanban },
+  { href: "/tasks", label: "Tasks", icon: CheckSquare },
+];
 
 function useClientList() {
   return useQuery<Client[]>({
@@ -36,10 +46,12 @@ function useClientList() {
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { selectedClientId, selectedClientName, setSelectedClient } =
     useClientContext();
   const { data: clients = [] } = useClientList();
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -63,7 +75,41 @@ export function Header() {
     : "??";
 
   return (
-    <header className="fixed left-60 right-0 top-0 z-30 flex h-14 items-center border-b bg-background px-5 gap-4">
+    <header className="fixed left-0 md:left-60 right-0 top-0 z-30 flex h-14 items-center border-b bg-background px-4 gap-3">
+      {/* Mobile hamburger */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetTrigger className="md:hidden flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Open menu</span>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-60 p-0" showCloseButton={false}>
+          <div className="flex h-14 items-center border-b px-5">
+            <span className="text-base font-semibold tracking-tight">Upwards SG</span>
+          </div>
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+            {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+              const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+        </SheetContent>
+      </Sheet>
+
       {/* Client Selector */}
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-2 rounded-md border border-input bg-background px-3 h-8 text-sm max-w-xs hover:bg-accent transition-colors">
